@@ -1,5 +1,5 @@
 vim.opt.number = true
-vim.opt.relativenumber = true
+
 vim.opt.expandtab = true
 vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
@@ -129,7 +129,6 @@ require("lazy").setup({
 })
 
 
-
 -- TELESCOPE KEYMAPS
 local builtin = require("telescope.builtin")
 
@@ -137,6 +136,32 @@ vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Find files" })
 vim.keymap.set("n", "<leader>fg", builtin.live_grep,  { desc = "Live grep" })
 vim.keymap.set("n", "<leader>fb", builtin.buffers,    { desc = "Buffers" })
 vim.keymap.set("n", "<leader>fh", builtin.help_tags,  { desc = "Help" })
+
+local function git_changed_files()
+  local pickers = require("telescope.pickers")
+  local finders = require("telescope.finders")
+  local conf = require("telescope.config").values
+
+  pickers.new({}, {
+    prompt_title = "Git Changed Files",
+    finder = finders.new_table {
+      results = vim.fn.systemlist("git status --porcelain"),
+      entry_maker = function(line)
+        local file = line:sub(4)
+        return {
+          value = file,      -- important for preview
+          display = line,    -- keep git status text
+          ordinal = file,
+          path = file,       -- required by file previewer
+        }
+      end,
+    },
+    sorter = conf.generic_sorter({}),
+    previewer = conf.file_previewer({}),
+  }):find()
+end
+
+vim.keymap.set("n", "<leader>fp", git_changed_files, { silent = true , desc = 'View git poreclain'})
 
 -- Git signs
 local gs = require("gitsigns")
